@@ -1,0 +1,123 @@
+{
+  "name": "etobi/typo3-dev",
+  "description": "Just a bunch of dev helpers",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Tobias Liebig",
+      "email": "work@etobi.de"
+    }
+  ],
+  "require": {
+    "composer-plugin-api": "^2.0",
+    "alexanderschnitzler/phpstorm.meta.php-typo3": "dev-main",
+    "armin/editorconfig-cli": "^2.0",
+    "ergebnis/composer-normalize": "^2.47",
+    "friendsofphp/php-cs-fixer": "^3.57",
+    "helmich/typo3-typoscript-lint": "^3.0",
+    "idiosyncratic/editorconfig": "^0.1.3",
+    "kuria/composer-pkg-scripts": "dev-master",
+    "php-parallel-lint/php-parallel-lint": "^1",
+    "phpmd/phpmd": "^2.15",
+    "phpstan/phpstan": "^2.1",
+    "saschaegerer/phpstan-typo3": "^2.1",
+    "seld/jsonlint": "^1.11",
+    "squizlabs/php_codesniffer": "^3.10",
+    "ssch/typo3-rector": "^3",
+    "symfony/translation": "^6.4",
+    "typo3/coding-standards": "^0.8"
+  },
+  "config": {
+    "allow-plugins": {
+      "ergebnis/composer-normalize": true,
+      "kuria/composer-pkg-scripts": true,
+      "phpstan/extension-installer": true
+    },
+    "audit": {
+      "abandoned": "report"
+    },
+    "sort-packages": true
+  },
+  "extra": {
+    "package-scripts": {
+      "fix:composer:normalize": [
+        "@composer normalize --no-check-lock",
+        "find {$packages-path} -name composer.json | xargs -I _ sh -c 'echo ; echo _ ; composer normalize --no-check-lock _'"
+      ],
+      "fix:php:cs": [
+        "php-cs-fixer fix --config {$lint-config-path}/.php-cs-fixer.php"
+      ],
+      "fix:php:rector": [
+        "rector --config={$lint-config-path}/rector.php"
+      ],
+      "fix:php:sniff": [
+        "phpcbf --standard={$lint-config-path}/phpcs.xml"
+      ],
+      "fix:phpstan:baseline": [
+        "phpstan --configuration={$lint-config-path}/phpstan.neon --generate-baseline={$lint-config-path}/phpstan-baseline.neon --allow-empty-baseline"
+      ],
+      "lint:all": [
+        "@lint:composer:validate",
+        "@lint:composer:normalize",
+        "@lint:composer:psr",
+        "@lint:json",
+        "@lint:php:cs-fixer",
+        "@lint:php",
+        "@lint:php:md",
+        "@lint:php:rector",
+        "@lint:php:sniff",
+        "@lint:php:stan",
+        "@lint:typoscript",
+        "@lint:xliff",
+        "@lint:yaml"
+      ],
+      "lint:composer:normalize": [
+        "@composer normalize --no-check-lock --dry-run",
+        "find {$packages-path} -name composer.json | xargs -I _ sh -c 'echo ; echo _ ; composer normalize --no-check-lock --dry-run _'"
+      ],
+      "lint:composer:psr": [
+        "@composer dump-autoload --optimize --strict-psr --no-plugins --no-scripts"
+      ],
+      "lint:composer:validate": [
+        "@composer validate",
+        "find {$packages-path} -name composer.json | xargs -I _ sh -c 'echo ; echo _ ; composer validate -d `dirname _`'"
+      ],
+      "lint:json": [
+        "find . -maxdepth 1 -name '*.json' | xargs -I _ sh -c 'echo ; echo _ ; php {$vendor-dir}/bin/jsonlint -q _ && echo OK'",
+        "find {$packages-path} -name '*.json' | xargs -I _ sh -c 'echo ; echo _ ; php {$vendor-dir}/bin/jsonlint -q _ && echo OK'"
+      ],
+      "lint:php": [
+        "parallel-lint {$packages-path} config/"
+      ],
+      "lint:php:cs-fixer": [
+        "php-cs-fixer fix --config {$lint-config-path}.php-cs-fixer.php -v --dry-run --diff"
+      ],
+      "lint:php:md": [
+        "phpmd {$packages-path} text {$lint-config-path}/phpmd.xml --cache"
+      ],
+      "lint:php:rector": [
+        "rector --config={$lint-config-path}/rector.php --dry-run"
+      ],
+      "lint:php:sniff": [
+        "phpcs --cache=.php_cs.cache --standard={$lint-config-path}/phpcs.xml -s"
+      ],
+      "lint:php:stan": [
+        "phpstan analyse --configuration={$lint-config-path}/phpstan.neon --no-progress -v"
+      ],
+      "lint:typoscript": [
+        "typoscript-lint -c {$lint-config-path}/typoscript-lint.yml --ansi -n --fail-on-warnings -vvv"
+      ],
+      "lint:xliff": [
+        "find {$packages-path} -name '*.xlf' | xargs -I _ sh -c 'echo _ ; {$lint-config-path}/xliff-lint lint:xliff _'"
+      ],
+      "lint:yaml": [
+        "find .ddev/ config/ {$packages-path} \\( -name '*.yaml' -o -name '*.yml' \\) -print0 | xargs -0 php {$vendor-dir}/bin/yaml-lint",
+        "[ -f *.yaml -o -f *.yml ] && find . -maxdepth 1 \\( -name '*.yaml' -o -name '*.yml' \\) -print0 | xargs -0 php {$vendor-dir}/bin/yaml-lint"
+      ]
+    },
+    "package-scripts-vars": {
+      "lint-config-path": "{$vendor-dir}/etobi/typo3-dev/Configuration/Lint/",
+      "packages-path": "./packages/"
+    }
+  }
+}
